@@ -1,5 +1,7 @@
 github.com/buger/jsonparser v0.0.0-20180910192245-6acdf747ae99 h1:yxtDQw7A+kLZZaufGxZtKDkKXbk+/7dguKjFUdlXocg=
 github.com/buger/jsonparser v0.0.0-20180910192245-6acdf747ae99/go.mod h1:bbYlZJ7hK1yFx9hf58LP0zeX7UjIGs20ufpu3evjr+s=
+github.com/c9s/inflect v0.0.0-20130402162822-006c50878f3f h1:sfSR+DQofxa5poubse9++Zv6wE70rAQ+IZQThxhVHxU=
+github.com/c9s/inflect v0.0.0-20130402162822-006c50878f3f/go.mod h1:IyAzlY1qfFweht0xujIYk1aO4Ele06nfXJ+E94dmGIw=
 github.com/go-stack/stack v1.8.0 h1:5SgMzNM5HxrEjV0ww2lTmX6E2Izsfxas4+YHWRs3Lsk=
 github.com/go-stack/stack v1.8.0/go.mod h1:v0f6uXyyMGvRgIKkXu+yp6POWl0qKG85gN/melR3HDY=
 github.com/golang/snappy v0.0.0-20180518054509-2e65f85255db h1:woRePGFeVFfLKN/pOkfl+p/TAqKOfFu+7KPlMVpok/w=

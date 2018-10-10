@@ -3,6 +3,9 @@ package mongodb
 import (
 	"context"
 	"fmt"
+	"strings"
+
+	"github.com/craiggwilson/go-typeproviders/pkg/naming"
 
 	"github.com/craiggwilson/go-typeproviders/pkg/structbuilder"
 	"github.com/mongodb/mongo-go-driver/bson"
@@ -131,9 +134,9 @@ func mapPrimitiveTypeName(t bson.Type) string {
 	case bson.TypeBoolean:
 		return "bool"
 	case bson.TypeDateTime:
-		return "time.Time"
+		return "time.Time time"
 	case bson.TypeDecimal128:
-		return "decimal128.Decimal128"
+		return "decimal128.Decimal128 github.com/mongodb/mongo-go-driver/bson/decimal128"
 	case bson.TypeDouble:
 		return "float64"
 	case bson.TypeInt32:
@@ -141,27 +144,48 @@ func mapPrimitiveTypeName(t bson.Type) string {
 	case bson.TypeInt64:
 		return "int64"
 	case bson.TypeObjectID:
-		return "objectid.ObjectID"
+		return "objectid.ObjectID github.com/mongodb/mongo-go-driver/bson/objectid"
 	case bson.TypeString:
 		return "string"
 	case bson.TypeTimestamp:
-		return "time.Time"
+		return "time.Time time"
 	default:
-		return "*bson.Value"
+		return "*bson.Value github.com/mongodb/mongo-go-driver/bson"
 	}
 }
 
-func buildStruct(name string, b *structbuilder.StructBuilder) (*structbuilder.Struct, error) {
+func buildStruct(name string, sb *structbuilder.StructBuilder) (*structbuilder.Struct, error) {
 	s := structbuilder.Struct{
-		Name: name,
+		Name: naming.Struct(name),
 	}
 
-	for _, f := range b.Fields() {
+	for _, f := range sb.Fields() {
+		t := chooseType(f.Types)
+		parts := strings.SplitN(t.Name(), " ", 2)
+		typeName := parts[0]
+		importPath := ""
+		if len(parts) == 2 {
+			importPath = parts[1]
+		}
+
+		fieldName := naming.ExportedField(f.Name)
+		if typeName == "array" {
+			fieldName = naming.Pluralize(fieldName)
+			typeName = "[]" + typeName
+		}
+
 		s.Fields = append(s.Fields, structbuilder.Field{
-			Name: f.Name,
-			Type: f.Types[0].Name(),
+			Name: fieldName,
+			Type: structbuilder.FieldType{
+				Name:       typeName,
+				ImportPath: importPath,
+			},
 		})
 	}
 
 	return &s, nil
+}
+
+func chooseType(types []structbuilder.Type) structbuilder.Type {
+	return types[0]
 }

@@ -369,6 +369,7 @@ func (rs *Ruleset) Capitalize(word string) string {
 // "dino_party" -> "DinoParty"
 func (rs *Ruleset) Camelize(word string) string {
 	words := splitAtCaseChangeWithTitlecase(word)
+	rs.replaceAcronyms(words)
 	return strings.Join(words, "")
 }
 
@@ -381,6 +382,7 @@ func (rs *Ruleset) CamelizeDownFirst(word string) string {
 // Captitilize every word in sentance "hello there" -> "Hello There"
 func (rs *Ruleset) Titleize(word string) string {
 	words := splitAtCaseChangeWithTitlecase(word)
+	rs.replaceAcronyms(words)
 	return strings.Join(words, " ")
 }
 
@@ -395,7 +397,18 @@ func (rs *Ruleset) safeCaseAcronyms(word string) string {
 func (rs *Ruleset) seperatedWords(word, sep string) string {
 	word = rs.safeCaseAcronyms(word)
 	words := splitAtCaseChange(word)
+	rs.replaceAcronyms(words)
 	return strings.Join(words, sep)
+}
+
+func (rs *Ruleset) replaceAcronyms(words []string) {
+	for i := 0; i < len(words); i++ {
+		for _, rule := range rs.acronyms {
+			if strings.ToUpper(words[i]) == rule.suffix {
+				words[i] = rule.suffix
+			}
+		}
+	}
 }
 
 // lowercase underscore version "BigBen" -> "big_ben"

@@ -21,7 +21,7 @@ func (s *Struct) QuotedTags() string {
 // Field represents a field in a struct.
 type Field struct {
 	Name string
-	Type string
+	Type FieldType
 	Tags []string
 }
 
@@ -32,4 +32,10 @@ func (f *Field) QuotedTags() string {
 	}
 
 	return ""
+}
+
+// FieldType represents the type of the field including its import path.
+type FieldType struct {
+	ImportPath string
+	Name       string
 }

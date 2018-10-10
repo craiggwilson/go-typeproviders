@@ -2,6 +2,7 @@ module github.com/craiggwilson/go-typeproviders
 
 require (
 	github.com/buger/jsonparser v0.0.0-20180910192245-6acdf747ae99 // indirect
+	github.com/c9s/inflect v0.0.0-20130402162822-006c50878f3f
 	github.com/go-stack/stack v1.8.0 // indirect
 	github.com/golang/snappy v0.0.0-20180518054509-2e65f85255db // indirect
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect

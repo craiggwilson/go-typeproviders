@@ -2,7 +2,9 @@ package generate
 
 import (
 	"bytes"
+	"context"
 	"fmt"
+	"go/format"
 	"io/ioutil"
 	"text/template"
 
@@ -14,19 +16,19 @@ type StructProvider interface {
 	// ProvideStructs builds all the structs that should be included. The filename
 	// may refer to a file that will be used and, if it exists, should be parsed
 	// for existing structures and amended.
-	ProvideStructs(filename string) ([]*structbuilder.StructBuilder, error)
+	ProvideStructs(ctx context.Context, filename string) ([]*structbuilder.Struct, error)
 }
 
 // Generate uses the struct provider to generate and write code to the provided
 // filename.
-func Generate(p StructProvider, filename string, pkg string) error {
-	structs, err := p.ProvideStructs(filename)
+func Generate(ctx context.Context, p StructProvider, filename string, pkg string) error {
+	structs, err := p.ProvideStructs(ctx, filename)
 	if err != nil {
 		return err
 	}
 
 	data := struct {
-		Structs []*structbuilder.StructBuilder
+		Structs []*structbuilder.Struct
 		Package string
 	}{
 		Structs: structs,
@@ -38,11 +40,17 @@ func Generate(p StructProvider, filename string, pkg string) error {
 		return err
 	}
 
-	if filename != "" {
-		return ioutil.WriteFile(filename, buf.Bytes(), 0666)
+	//formatted := buf.Bytes()
+	formatted, err := format.Source(buf.Bytes())
+	if err != nil {
+		return err
 	}
 
-	fmt.Println(buf.String())
+	if filename != "" {
+		return ioutil.WriteFile(filename, formatted, 0666)
+	}
+
+	fmt.Println(string(formatted))
 	return nil
 }
 
@@ -53,8 +61,8 @@ var tmpl = template.Must(template.New("file").Parse(`/*
 {{define "struct"}}
 type {{ .Name }} struct {
 	{{range .Fields}}
-		{{.Name}} {{.Type}} {{.QuotedTags}}
-	{{end}}
+	{{.Name}} {{.Type}} {{.QuotedTags}}
+	{{- end}}
 }
 {{end}}
 

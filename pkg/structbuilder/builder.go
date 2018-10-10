@@ -6,7 +6,12 @@ import "fmt"
 type Type interface {
 	Name() string
 	Count() uint
+	_type()
 }
+
+func (*StructBuilder) _type()    {}
+func (*ArrayBuilder) _type()     {}
+func (*PrimitiveBuilder) _type() {}
 
 // NewStructBuilder creates a new struct builder.
 func NewStructBuilder(name string) *StructBuilder {
@@ -41,19 +46,19 @@ func (sb *StructBuilder) Fields() []*FieldBuilder {
 // Include includes the specified field/type in the struct.
 func (sb *StructBuilder) Include(name string, t Type) {
 	for _, f := range sb.fields {
-		if f.Name == name {
-			f.Count++
-			f.Include(t)
+		if f.name == name {
+			f.count++
+			f.include(t)
 			return
 		}
 	}
 
 	f := FieldBuilder{
-		Name:  name,
-		Count: 1,
+		name:  name,
+		count: 1,
 	}
 
-	f.Include(t)
+	f.include(t)
 
 	sb.fields = append(sb.fields, &f)
 }
@@ -64,8 +69,10 @@ func (sb *StructBuilder) Merge(other *StructBuilder) {
 	for _, of := range other.fields {
 		found := false
 		for _, sbf := range sb.fields {
-			if sbf.Name == of.Name {
+			if sbf.name == of.name {
 				sbf.merge(of)
+				found = true
+				break
 			}
 		}
 
@@ -77,34 +84,49 @@ func (sb *StructBuilder) Merge(other *StructBuilder) {
 
 // FieldBuilder helps build structs.
 type FieldBuilder struct {
-	Name  string
-	Count uint
-	Types []Type
+	name  string
+	count uint
+	types []Type
 }
 
-// Include increments the count of the specified name and type by 1.
-func (fb *FieldBuilder) Include(t Type) {
-	for _, fbt := range fb.Types {
+// Name returns the name of the field.
+func (fb *FieldBuilder) Name() string {
+	return fb.name
+}
+
+// Count returns the number of times the field was included.
+func (fb *FieldBuilder) Count() uint {
+	return fb.count
+}
+
+// Types returns the fields types.
+func (fb *FieldBuilder) Types() []Type {
+	return fb.types
+}
+
+func (fb *FieldBuilder) include(t Type) {
+	for _, fbt := range fb.types {
 		if fbt.Name() == t.Name() {
 			merge(fbt, t)
 			return
 		}
 	}
 
-	fb.Types = append(fb.Types, t)
+	fb.types = append(fb.types, t)
 }
 
 func (fb *FieldBuilder) merge(other *FieldBuilder) {
-	for _, ot := range other.Types {
+	for _, ot := range other.types {
 		found := false
-		for _, fbt := range fb.Types {
+		for _, fbt := range fb.types {
 			if fbt.Name() == ot.Name() {
 				merge(fbt, ot)
 				found = true
+				break
 			}
 		}
 		if !found {
-			fb.Types = append(fb.Types, ot)
+			fb.types = append(fb.types, ot)
 		}
 	}
 }
@@ -197,6 +219,7 @@ func merge(a, b Type) {
 	bPrim, bOK := b.(*PrimitiveBuilder)
 	if aOK && bOK {
 		aPrim.Merge(bPrim)
+		return
 	} else if aOK != bOK {
 		panic(fmt.Sprintf("cannot merge %T and %T", a, b))
 	}
@@ -205,6 +228,7 @@ func merge(a, b Type) {
 	bArray, bOK := b.(*ArrayBuilder)
 	if aOK && bOK {
 		aArray.Merge(bArray)
+		return
 	} else if aOK != bOK {
 		panic(fmt.Sprintf("cannot merge %T and %T", a, b))
 	}
@@ -213,6 +237,7 @@ func merge(a, b Type) {
 	bStruct, bOK := b.(*StructBuilder)
 	if aOK && bOK {
 		aStruct.Merge(bStruct)
+		return
 	} else if aOK != bOK {
 		panic(fmt.Sprintf("cannot merge %T and %T", a, b))
 	}

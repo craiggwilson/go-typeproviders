@@ -91,11 +91,14 @@ type {{ .Name }} struct {
 
 package {{.Package}}
 
+{{if (len .ImportPaths) eq 0}}
 import (
 	{{range .ImportPaths}}
 		"{{.}}"
 	{{- end}}
 )
+{{end}}
+
 {{range .Structs}}
 {{template "struct" .}}
 {{end}}`))

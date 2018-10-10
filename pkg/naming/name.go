@@ -19,12 +19,12 @@ func init() {
 
 // Struct returns a proper name for a struct
 func Struct(name string) string {
-	return inflect.Titleize(inflect.Singularize(name))
+	return inflect.Camelize(inflect.Singularize(name))
 }
 
 // ExportedField returns a proper name for a field.
 func ExportedField(name string) string {
-	return inflect.Titleize(name)
+	return inflect.Camelize(name)
 }
 
 // Pluralize returns a plural form of the name.
@@ -35,8 +35,4 @@ func Pluralize(name string) string {
 // Singularize returns a singular form of the name.
 func Singularize(name string) string {
 	return inflect.Singularize(name)
-}
-
-func handleInitials(name string) {
-
 }

@@ -3,7 +3,7 @@ package main
 import (
 	"os"
 
-	"github.com/craiggwilson/typeproviders/cmd"
+	"github.com/craiggwilson/go-typeproviders/cmd"
 )
 
 func main() {

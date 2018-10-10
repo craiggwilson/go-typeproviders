@@ -1,11 +1,7 @@
 package cmd
 
 import (
-	"bytes"
-	"fmt"
-	"os"
-
-	"github.com/craiggwilson/typeproviders/internal/generators/mongodb"
+	"github.com/craiggwilson/go-typeproviders/pkg/providers/mongodb"
 	"github.com/spf13/cobra"
 )
 
@@ -28,17 +24,9 @@ var mongodbCmd = &cobra.Command{
 			URI:            cmd.Flags().Lookup("uri").Value.String(),
 			DatabaseName:   cmd.Flags().Lookup("database").Value.String(),
 			CollectionName: cmd.Flags().Lookup("collection").Value.String(),
-			Package:        rootCmd.PersistentFlags().Lookup("pkg").Value.String(),
 		}
 
-		gen := mongodb.NewGenerator(cfg)
-
-		var buf bytes.Buffer
-		if err := gen.Write(&buf); err != nil {
-			fmt.Println(err)
-			os.Exit(1)
-		}
-
-		fmt.Println(buf.String())
+		p := mongodb.NewStructProvider(cfg)
+		run(p)
 	},
 }

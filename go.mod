@@ -1,4 +1,4 @@
-module github.com/craiggwilson/typeproviders
+module github.com/craiggwilson/go-typeproviders
 
 require (
 	github.com/alecthomas/template v0.0.0-20160405071501-a0175ee3bccc

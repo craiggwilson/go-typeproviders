@@ -79,18 +79,10 @@ func BuildStruct(name string, sb *structbuilder.StructBuilder) (*structbuilder.S
 	}
 
 	for _, f := range sb.Fields() {
-		t := chooseType(f.Types())
-		parts := strings.SplitN(t.Name(), " ", 2)
-		typeName := parts[0]
-		importPath := ""
-		if len(parts) == 2 {
-			importPath = parts[1]
-		}
-
+		typeName, importPath := selectType(f.Types())
 		fieldName := naming.ExportedField(f.Name())
-		if typeName == "array" {
+		if strings.HasPrefix(typeName, "[]") {
 			fieldName = naming.Pluralize(fieldName)
-			typeName = "[]" + typeName
 		}
 
 		s.Fields = append(s.Fields, structbuilder.Field{
@@ -111,4 +103,27 @@ func BuildStruct(name string, sb *structbuilder.StructBuilder) (*structbuilder.S
 
 func chooseType(types []structbuilder.Type) structbuilder.Type {
 	return types[0]
+}
+
+func selectType(types []structbuilder.Type) (string, string) {
+	t := chooseType(types)
+	typeName, importPath := typeNameAndImportPath(t)
+	switch tt := t.(type) {
+	case *structbuilder.ArrayBuilder:
+		typeName, importPath = selectType(tt.Types())
+		typeName = "[]" + typeName
+	}
+
+	return typeName, importPath
+}
+
+func typeNameAndImportPath(t structbuilder.Type) (string, string) {
+	parts := strings.SplitN(t.Name(), " ", 2)
+	typeName := parts[0]
+	importPath := ""
+	if len(parts) == 2 {
+		importPath = parts[1]
+	}
+
+	return typeName, importPath
 }

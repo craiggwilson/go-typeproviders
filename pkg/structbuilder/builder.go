@@ -213,6 +213,11 @@ func (ab *ArrayBuilder) Merge(other *ArrayBuilder) {
 	}
 }
 
+// Types returns the fields types.
+func (ab *ArrayBuilder) Types() []Type {
+	return ab.types
+}
+
 // Merge merges the two types. The two types must be the same.
 func merge(a, b Type) {
 	aPrim, aOK := a.(*PrimitiveBuilder)

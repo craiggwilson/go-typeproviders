@@ -82,10 +82,10 @@ func (p *StructProvider) provideFromCollection(ctx context.Context, coll *mongo.
 		}
 	}
 
-	s, err := bsonutil.BuildStruct(coll.Name(), sb)
+	results, err := bsonutil.BuildStructs(coll.Name(), sb, false)
 	if err != nil {
 		return nil, err
 	}
 
-	return []*structbuilder.Struct{s}, nil
+	return results, nil
 }

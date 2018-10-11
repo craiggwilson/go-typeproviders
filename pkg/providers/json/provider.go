@@ -47,10 +47,10 @@ func (p *StructProvider) ProvideStructs(ctx context.Context, filename string) ([
 		sb.Merge(tb)
 	}
 
-	s, err := bsonutil.BuildStruct(p.cfg.StructName, sb)
+	results, err := bsonutil.BuildStructs(p.cfg.StructName, sb, false)
 	if err != nil {
 		return nil, err
 	}
 
-	return []*structbuilder.Struct{s}, nil
+	return results, nil
 }

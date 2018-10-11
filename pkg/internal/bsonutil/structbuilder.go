@@ -72,49 +72,81 @@ func mapPrimitiveTypeName(t bson.Type) string {
 	}
 }
 
-// BuildStruct builds a structbuilder.Struct from a structbuilder.StructBuilder.
-func BuildStruct(name string, sb *structbuilder.StructBuilder) (*structbuilder.Struct, error) {
-	s := structbuilder.Struct{
-		Name: naming.Struct(name),
+// BuildStruct builds multiple []*structbuilder.Structs from a structbuilder.StructBuilder.
+func BuildStructs(name string, sb *structbuilder.StructBuilder, embedStructs bool) ([]*structbuilder.Struct, error) {
+	var results []*structbuilder.Struct
+
+	type buildItem struct {
+		b    *structbuilder.StructBuilder
+		path string
 	}
 
-	for _, f := range sb.Fields() {
-		typeName, importPath := selectType(f.Types())
-		fieldName := naming.ExportedField(f.Name())
-		if strings.HasPrefix(typeName, "[]") {
-			fieldName = naming.Pluralize(fieldName)
+	structsToBuild := []buildItem{{sb, name}}
+
+	for len(structsToBuild) > 0 {
+		current := structsToBuild[0]
+		structsToBuild = structsToBuild[1:]
+
+		sb = current.b
+		path := current.path
+
+		s := structbuilder.Struct{
+			Name: naming.Struct(path),
 		}
 
-		s.Fields = append(s.Fields, structbuilder.Field{
-			Name: fieldName,
-			Tags: []string{
-				fmt.Sprintf(`"bson:%s"`, f.Name()),
-				fmt.Sprintf(`"json:%s"`, f.Name()),
-			},
-			Type: structbuilder.FieldType{
-				Name:       typeName,
-				ImportPath: importPath,
-			},
-		})
+		for _, f := range sb.Fields() {
+			nestedStructPath := path + "_" + f.Name()
+			t, typeName, importPath := selectType(nestedStructPath, f.Types())
+			fieldName := naming.ExportedField(f.Name())
+			if strings.HasPrefix(typeName, "[]") {
+				fieldName = naming.Pluralize(fieldName)
+			}
+
+			if st, ok := t.(*structbuilder.StructBuilder); ok {
+				structsToBuild = append(structsToBuild, buildItem{
+					b:    st,
+					path: nestedStructPath,
+				})
+			}
+
+			s.Fields = append(s.Fields, structbuilder.Field{
+				Name: fieldName,
+				Tags: []string{
+					fmt.Sprintf(`"bson:%s"`, f.Name()),
+					fmt.Sprintf(`"json:%s"`, f.Name()),
+				},
+				Type: structbuilder.FieldType{
+					Name:       typeName,
+					ImportPath: importPath,
+				},
+			})
+		}
+
+		results = append(results, &s)
 	}
 
-	return &s, nil
+	return results, nil
 }
 
-func chooseType(types []structbuilder.Type) structbuilder.Type {
-	return types[0]
-}
-
-func selectType(types []structbuilder.Type) (string, string) {
+// selectType takes the current path into the type selection and a list of types.
+// It returns the dominate type as well as the typeName and importPath to use.
+func selectType(path string, types []structbuilder.Type) (structbuilder.Type, string, string) {
 	t := chooseType(types)
 	typeName, importPath := typeNameAndImportPath(t)
 	switch tt := t.(type) {
 	case *structbuilder.ArrayBuilder:
-		typeName, importPath = selectType(tt.Types())
+		t, typeName, importPath = selectType(path, tt.Types())
 		typeName = "[]" + typeName
+	case *structbuilder.StructBuilder:
+		typeName = naming.Struct(path)
+		importPath = ""
 	}
 
-	return typeName, importPath
+	return t, typeName, importPath
+}
+
+func chooseType(types []structbuilder.Type) structbuilder.Type {
+	return types[0]
 }
 
 func typeNameAndImportPath(t structbuilder.Type) (string, string) {

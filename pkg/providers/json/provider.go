@@ -34,20 +34,15 @@ func (p *StructProvider) ProvideStructs(ctx context.Context, filename string) ([
 	if err != nil {
 		return nil, err
 	}
-	var sb *structbuilder.StructBuilder
 	doc, err := bson.ParseExtJSONObject(string(jsonString))
 	if err != nil && err != io.EOF {
 		return nil, err
 	}
 
-	tb := bsonutil.DocumentToStructBuilder(doc)
-	if sb == nil {
-		sb = tb
-	} else {
-		sb.Merge(tb)
-	}
+	tb := bsonutil.NewTypeBuilder()
+	tb.IncludeDocument(doc)
 
-	results, err := bsonutil.BuildStructs(p.cfg.StructName, sb, false)
+	results, err := bsonutil.BuildStructs(p.cfg.StructName, tb, false)
 	if err != nil {
 		return nil, err
 	}

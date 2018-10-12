@@ -29,7 +29,7 @@ type StructProvider struct {
 
 // ProvideStructs implements the generators.StructProvider interface.
 func (p *StructProvider) ProvideStructs(ctx context.Context, filename string) ([]*structbuilder.Struct, error) {
-	var sb *structbuilder.StructBuilder
+	tb := bsonutil.NewTypeBuilder()
 	for {
 		doc := bson.NewDocument()
 		_, err := doc.ReadFrom(p.cfg.Input)
@@ -41,15 +41,10 @@ func (p *StructProvider) ProvideStructs(ctx context.Context, filename string) ([
 			return nil, err
 		}
 
-		tb := bsonutil.DocumentToStructBuilder(doc)
-		if sb == nil {
-			sb = tb
-		} else {
-			sb.Merge(tb)
-		}
+		tb.IncludeDocument(doc)
 	}
 
-	results, err := bsonutil.BuildStructs(p.cfg.StructName, sb, false)
+	results, err := bsonutil.BuildStructs(p.cfg.StructName, tb, false)
 	if err != nil {
 		return nil, err
 	}

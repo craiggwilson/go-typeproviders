@@ -65,7 +65,7 @@ func (p *StructProvider) provideFromCollection(ctx context.Context, coll *mongo.
 		return nil, err
 	}
 
-	var sb *structbuilder.StructBuilder
+	tb := bsonutil.NewTypeBuilder()
 
 	for cursor.Next(ctx) {
 		doc := bson.NewDocument()
@@ -74,15 +74,10 @@ func (p *StructProvider) provideFromCollection(ctx context.Context, coll *mongo.
 			return nil, err
 		}
 
-		tb := bsonutil.DocumentToStructBuilder(doc)
-		if sb == nil {
-			sb = tb
-		} else {
-			sb.Merge(tb)
-		}
+		tb.IncludeDocument(doc)
 	}
 
-	results, err := bsonutil.BuildStructs(coll.Name(), sb, false)
+	results, err := bsonutil.BuildStructs(coll.Name(), tb, false)
 	if err != nil {
 		return nil, err
 	}

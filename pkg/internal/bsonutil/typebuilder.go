@@ -11,7 +11,7 @@ func NewTypeBuilder() *TypeBuilder {
 
 // TypeBuilder is used to build up a type.
 type TypeBuilder struct {
-	Fields     map[string]*TypeBuilder
+	Fields     []*FieldBuilder
 	Array      *TypeBuilder
 	Primitives map[string]uint
 
@@ -30,18 +30,16 @@ func (tb *TypeBuilder) IncludeDocument(doc *bson.Document) {
 }
 
 func (tb *TypeBuilder) includeField(name string, v *bson.Value) {
-	if tb.Fields == nil {
-		tb.Fields = make(map[string]*TypeBuilder)
+	for _, fb := range tb.Fields {
+		if fb.Name == name {
+			fb.includeValue(v)
+			return
+		}
 	}
 
-	var ftb *TypeBuilder
-	var ok bool
-	if ftb, ok = tb.Fields[name]; !ok {
-		ftb = NewTypeBuilder()
-		tb.Fields[name] = ftb
-	}
-
-	ftb.includeValue(v)
+	fb := NewFieldBuilder(name)
+	fb.includeValue(v)
+	tb.Fields = append(tb.Fields, fb)
 }
 
 func (tb *TypeBuilder) includeValue(v *bson.Value) {
@@ -105,44 +103,16 @@ func mapPrimitiveTypeName(t bson.Type) string {
 	}
 }
 
-// // Merge merges two StructBuilders.
-// func (tb *TypeBuilder) Merge(other *TypeBuilder) {
-// 	tb.Count += other.Count
-// 	tb.CanBeNull = tb.CanBeNull || other.CanBeNull
+// NewFieldBuilder makes a FieldBuilder.
+func NewFieldBuilder(name string) *FieldBuilder {
+	return &FieldBuilder{
+		Name:        name,
+		TypeBuilder: NewTypeBuilder(),
+	}
+}
 
-// 	if tb.Array != nil && other.Array != nil {
-// 		tb.Array.Merge(other.Array)
-// 	} else if other.Array != nil {
-// 		tb.Array = other.Array
-// 	}
-
-// 	if tb.Primitives != nil && other.Primitives != nil {
-// 		for key := range tb.Primitives {
-// 			if op, ok := other.Primitives[key]; ok {
-// 				tb.Primitives[key] += op
-// 			}
-// 		}
-
-// 		for key := range other.Primitives {
-// 			if _, ok := tb.Primitives[key]; !ok {
-// 				tb.Primitives[key] = other.Primitives[key]
-// 			}
-// 		}
-// 	} else if other.Primitives != nil {
-// 		tb.Primitives = other.Primitives
-// 	}
-
-// 	if tb.Fields != nil && other.Fields != nil {
-// 		for key := range tb.Fields {
-// 			if of, ok := other.Fields[key]; ok {
-// 				tb.Fields[key].Merge(of)
-// 			}
-// 		}
-
-// 		for key := range other.Fields {
-// 			if _, ok := tb.Fields[key]; !ok {
-// 				tb.Fields[key] = other.Fields[key]
-// 			}
-// 		}
-// 	}
-// }
+// FieldBuilder builds up fields.
+type FieldBuilder struct {
+	*TypeBuilder
+	Name string
+}

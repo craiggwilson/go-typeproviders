@@ -14,24 +14,22 @@ func BuildStruct(name string, tb *TypeBuilder) *structbuilder.Struct {
 		Name: naming.Struct(name),
 	}
 
-	for fieldName, ftb := range tb.Fields {
-		exportedFieldName := naming.ExportedField(fieldName)
+	for _, fb := range tb.Fields {
+		exportedFieldName := naming.ExportedField(fb.Name)
 		path := s.Name + exportedFieldName
-		fieldType := selectType(path, tb.Count, ftb)
+		fieldType := selectType(path, tb.Count, fb.TypeBuilder)
 		if fieldType.ArrayCount > 0 {
 			exportedFieldName = naming.Pluralize(exportedFieldName)
 		}
 		s.Fields = append(s.Fields, &structbuilder.Field{
 			Name: exportedFieldName,
 			Tags: []string{
-				fmt.Sprintf(`"bson:%s"`, fieldName),
-				fmt.Sprintf(`"json:%s"`, fieldName),
+				fmt.Sprintf(`"bson:%s"`, fb.Name),
+				fmt.Sprintf(`"json:%s"`, fb.Name),
 			},
 			Type: &fieldType,
 		})
 	}
-
-	structbuilder.SortFieldsByName(s.Fields)
 
 	return &s
 }

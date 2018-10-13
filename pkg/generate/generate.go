@@ -108,7 +108,7 @@ var tmpl = template.Must(template.New("file").Funcs(template.FuncMap{
 struct {
 	{{range .Fields}}
 	{{.Name}} {{brackets .Type.ArrayCount }} {{canBeNull .Type.CanBeNull }} {{if .Type.EmbeddedStruct }}{{template "embeddedStruct" .Type.EmbeddedStruct }} {{else}} {{.Type.Name}} {{end}} {{quotedTags .Tags }}
-	{{end}}
+	{{- end}}
 }
 {{- end}}
 

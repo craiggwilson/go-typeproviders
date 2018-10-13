@@ -13,7 +13,7 @@ func run(p generate.StructProvider) {
 
 	ctx := signalContext(context.Background())
 	pkg := rootCmd.PersistentFlags().Lookup("pkg").Value.String()
-	err := generate.Generate(ctx, p, "", pkg)
+	err := generate.Generate(ctx, p, "", pkg, false)
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)

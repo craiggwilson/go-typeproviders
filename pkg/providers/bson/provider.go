@@ -44,10 +44,6 @@ func (p *StructProvider) ProvideStructs(ctx context.Context, filename string) ([
 		tb.IncludeDocument(doc)
 	}
 
-	results, err := bsonutil.BuildStructs(p.cfg.StructName, tb, false)
-	if err != nil {
-		return nil, err
-	}
-
-	return results, nil
+	result := bsonutil.BuildStruct(p.cfg.StructName, tb)
+	return []*structbuilder.Struct{result}, nil
 }

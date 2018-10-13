@@ -77,10 +77,6 @@ func (p *StructProvider) provideFromCollection(ctx context.Context, coll *mongo.
 		tb.IncludeDocument(doc)
 	}
 
-	results, err := bsonutil.BuildStructs(coll.Name(), tb, false)
-	if err != nil {
-		return nil, err
-	}
-
-	return results, nil
+	result := bsonutil.BuildStruct(coll.Name(), tb)
+	return []*structbuilder.Struct{result}, nil
 }

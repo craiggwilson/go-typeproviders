@@ -45,6 +45,7 @@ func (tb *TypeBuilder) includeField(name string, v *bson.Value) {
 }
 
 func (tb *TypeBuilder) includeValue(v *bson.Value) {
+	tb.Count++
 	switch v.Type() {
 	case bson.TypeArray:
 		if tb.Array == nil {

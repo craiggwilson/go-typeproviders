@@ -7,6 +7,7 @@ import (
 	"go/format"
 	"io/ioutil"
 	"sort"
+	"strings"
 	"text/template"
 
 	"github.com/craiggwilson/go-typeproviders/pkg/structbuilder"
@@ -22,10 +23,19 @@ type StructProvider interface {
 
 // Generate uses the struct provider to generate and write code to the provided
 // filename.
-func Generate(ctx context.Context, p StructProvider, filename string, pkg string) error {
+func Generate(ctx context.Context, p StructProvider, filename string, pkg string, embedStructs bool) error {
 	structs, err := p.ProvideStructs(ctx, filename)
 	if err != nil {
 		return err
+	}
+
+	if !embedStructs {
+		var results []*structbuilder.Struct
+		for _, s := range structs {
+			results = append(results, s.UnembedStructs()...)
+		}
+
+		structs = results
 	}
 
 	importPaths := uniqueImportPaths(structs)
@@ -77,16 +87,35 @@ func uniqueImportPaths(structs []*structbuilder.Struct) []string {
 	return results
 }
 
-var tmpl = template.Must(template.New("file").Parse(`/*
-* CODE GENERATED AUTOMATICALLY WITH github.com/craiggwilson/go-typeproviders
-* THIS FILE SHOULD NOT BE EDITED BY HAND
-*/
-{{define "struct"}}
-type {{ .Name }} struct {
+var tmpl = template.Must(template.New("file").Funcs(template.FuncMap{
+	"brackets": func(count int) string {
+		return strings.Repeat("[]", count)
+	},
+	"canBeNull": func(canBeNull bool) string {
+		if canBeNull {
+			return "*"
+		}
+
+		return ""
+	},
+	"quotedTags": func(tags []string) string {
+		if len(tags) > 0 {
+			return "`" + strings.Join(tags, " ") + "`"
+		}
+
+		return ""
+	},
+}).Parse(`/* CODE GENERATED AUTOMATICALLY WITH github.com/craiggwilson/go-typeproviders */
+{{define "embeddedStruct" -}}
+struct {
 	{{range .Fields}}
-	{{.Name}} {{.Type.Name}} {{.QuotedTags}}
-	{{- end}}
+	{{.Name}} {{brackets .Type.ArrayCount }} {{canBeNull .Type.CanBeNull }} {{if .Type.EmbeddedStruct }}{{template "embeddedStruct" .Type.EmbeddedStruct }} {{else}} {{.Type.Name}} {{end}} {{quotedTags .Tags }}
+	{{end}}
 }
+{{- end}}
+
+{{define "struct" -}}
+type {{ .Name }} {{template "embeddedStruct" .}}
 {{end}}
 
 package {{.Package}}

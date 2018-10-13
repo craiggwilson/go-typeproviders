@@ -9,6 +9,7 @@ import (
 
 func init() {
 	rootCmd.PersistentFlags().StringP("pkg", "", "", "the name of the package to hold the structs")
+	rootCmd.PersistentFlags().BoolP("embedStructs", "", false, "embed structs instead of giving them names")
 }
 
 // Execute starts the application using the provided arguments.

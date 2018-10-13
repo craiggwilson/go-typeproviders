@@ -29,7 +29,7 @@ type StructProvider struct {
 }
 
 // ProvideStructs implements the generators.StructProvider interface.
-func (p *StructProvider) ProvideStructs(ctx context.Context, filename string) ([]*structbuilder.Struct, error) {
+func (p *StructProvider) ProvideStructs(ctx context.Context) ([]*structbuilder.Struct, error) {
 	jsonString, err := ioutil.ReadAll(p.cfg.Input)
 	if err != nil {
 		return nil, err

@@ -31,7 +31,7 @@ type StructProvider struct {
 }
 
 // ProvideStructs implements the generators.StructProvider interface.
-func (p *StructProvider) ProvideStructs(ctx context.Context, filename string) ([]*structbuilder.Struct, error) {
+func (p *StructProvider) ProvideStructs(ctx context.Context) ([]*structbuilder.Struct, error) {
 	client, err := mongo.Connect(ctx, p.cfg.URI)
 	if err != nil {
 		return nil, err

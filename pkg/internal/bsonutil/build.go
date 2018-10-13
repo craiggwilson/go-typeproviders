@@ -21,7 +21,7 @@ func BuildStruct(name string, tb *TypeBuilder) *structbuilder.Struct {
 		if fieldType.ArrayCount > 0 {
 			exportedFieldName = naming.Pluralize(exportedFieldName)
 		}
-		s.Fields = append(s.Fields, structbuilder.Field{
+		s.Fields = append(s.Fields, &structbuilder.Field{
 			Name: exportedFieldName,
 			Tags: []string{
 				fmt.Sprintf(`"bson:%s"`, fieldName),
@@ -30,6 +30,8 @@ func BuildStruct(name string, tb *TypeBuilder) *structbuilder.Struct {
 			Type: &fieldType,
 		})
 	}
+
+	structbuilder.SortFieldsByName(s.Fields)
 
 	return &s
 }

@@ -15,16 +15,14 @@ import (
 
 // StructProvider is the interface that wraps the ProvideStructs method.
 type StructProvider interface {
-	// ProvideStructs builds all the structs that should be included. The filename
-	// may refer to a file that will be used and, if it exists, should be parsed
-	// for existing structures and amended.
-	ProvideStructs(ctx context.Context, filename string) ([]*structbuilder.Struct, error)
+	// ProvideStructs builds all the structs that should be included.
+	ProvideStructs(ctx context.Context) ([]*structbuilder.Struct, error)
 }
 
 // Generate uses the struct provider to generate and write code to the provided
 // filename.
 func Generate(ctx context.Context, p StructProvider, filename string, pkg string, embedStructs bool) error {
-	structs, err := p.ProvideStructs(ctx, filename)
+	structs, err := p.ProvideStructs(ctx)
 	if err != nil {
 		return err
 	}

@@ -28,7 +28,7 @@ type StructProvider struct {
 }
 
 // ProvideStructs implements the generators.StructProvider interface.
-func (p *StructProvider) ProvideStructs(ctx context.Context, filename string) ([]*structbuilder.Struct, error) {
+func (p *StructProvider) ProvideStructs(ctx context.Context) ([]*structbuilder.Struct, error) {
 	tb := bsonutil.NewTypeBuilder()
 	for {
 		doc := bson.NewDocument()

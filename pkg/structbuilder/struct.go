@@ -5,7 +5,7 @@ import "strings"
 // Struct represents a struct.
 type Struct struct {
 	Name   string
-	Fields []Field
+	Fields []*Field
 	Tags   []string
 }
 
